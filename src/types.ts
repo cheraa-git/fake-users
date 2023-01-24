@@ -5,4 +5,4 @@ export interface User {
   phone: string
 }
 
-export type Lang = 'rus' | 'usa'
+export type Lang = 'rus' | 'usa' | 'pl'

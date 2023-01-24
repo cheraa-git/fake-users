@@ -4,81 +4,103 @@ import data from "./data/data.json"
 import Fakerator from 'fakerator'
 
 
+const fakeratorCreator = (seed: number, lang: Lang) => {
+  let region
+  if (lang === 'rus') region = 'ru-RU'
+  else if (lang === 'pl') region = 'pl-PL'
+  else if (lang === 'usa') region = ''
+  const fakeratorInstance = Fakerator(region)
+  // @ts-ignore
+  fakeratorInstance.seed(seed)
+  return fakeratorInstance
+}
+
 const getRandomValue = (random: PRNG, array: string[]) => {
   const randomIndex = Math.floor(random() * array.length)
   return array[randomIndex]
 }
 
-const getRandomId = (random: PRNG) => {
+const getId = (random: PRNG) => {
   const min = 100000000000
   const max = 999999999999
   return `${Math.round(min - 0.5 + random() * (max - min + 1))}`
 }
 
-const getCityWithType = (random: PRNG, lang: Lang) => {
-  const city = getRandomValue(random, data[lang].cities)
-  if (lang === 'usa') return city
+const getCityWithType = (random: PRNG, city: string, lang: Lang) => {
+  if (lang !== 'rus') return city
   const cityTypes = ['г.', 'Г.', "гор.", 'Город', 'город', 'село', 'деревня', '']
   let type = cityTypes[Math.floor(random() * cityTypes.length)]
   if (!type.includes('.')) {
     type += ' '
   }
   return type + city
+
 }
 
-const getRandomStreet = (cityWithType: string, random: PRNG, lang: Lang) => {
+const getStreet = (cityWithType: string, seed: string, lang: Lang) => {
+  const random = seedRandom(seed)
   const street = getRandomValue(random, data[lang].streets)
   if (lang === 'usa') return street
+  if (lang === 'pl') return fakeratorCreator(+seed, lang).address.streetName()
   if (cityWithType.includes('деревня') || cityWithType.includes('село')) {
     return Math.floor(random() * 3) === 0 ? '' : street
   }
   return street
 }
 
-const getRandomHouse = (random: PRNG, lang: Lang) => {
-  const houseNumb = Math.floor(random() * 123 + 1)
-  if (lang === 'usa') return houseNumb
+const getHouse = (random: PRNG, lang: Lang) => {
+  const houseNumb = Math.floor(random() * 234 + 1)
+  if (lang !== 'rus') return houseNumb
   return `д.${houseNumb}`
 }
 
-const generatePhone = (random: PRNG, lang: Lang) => {
-  const codes = data.rus.phoneCodes
-  const countryCodes = {
-    "rus": ['8', '7', '+7'],
-    "usa": ['1', '+1', '+1', '+1']
+const getPhone = (seed: string, lang: Lang) => {
+  const fakerator = fakeratorCreator(+seed, lang)
+  const phone = fakerator.phone.number()
+  return lang === 'rus' ? '8' + phone : phone
+}
+
+const getName = (seed: string, lang: Lang) => {
+  const { names } = fakeratorCreator(+seed, lang)
+  const random = seedRandom(seed)
+  const gender = !!Math.floor(random() * 2) ? 'm' : 'f'
+  const genderName = {
+    m: `${names.lastNameM()} ${names.firstNameM()}`,
+    f: `${names.lastNameF()} ${names.firstNameF()}`
   }
-  const countryCode = getRandomValue(random, countryCodes[lang])
-  const cityCode = getRandomValue(random, codes)
-  let number = Math.floor(random() * 9999999).toString()
-  number = "0".repeat(7 - number.length) + number
-  return `${countryCode}-${cityCode}-${number}`
+  if (lang !== 'rus') return genderName[gender]
+  const genderSurname = {
+    m: getRandomValue(random, data.rus.surnameM),
+    f: getRandomValue(random, data.rus.surnameF)
+  }
+  return `${genderName[gender]} ${genderSurname[gender]}`
 }
 
 const getPrngUser = (seed: string, lang: Lang): User => {
   const random = seedRandom(seed)
-  const [ names, states] = [data[lang].names, data[lang].states]
-  generatePhone(random, lang)
-  const city = getCityWithType(random, lang)
-  const street = getRandomStreet(city, random, lang)
-  const state = getRandomValue(random, states)
-  const house = getRandomHouse(random, lang)
+  const fakerator = fakeratorCreator(+seed, lang)
+  const city = getCityWithType(random, fakerator.address.city(), lang)
+  const street = getStreet(city, seed, lang)
+  const state = getRandomValue(random, data[lang].states)
+  const house = getHouse(random, lang)
   const address = [state, city, street, house].filter(str => str).join(', ')
   return {
-    id: getRandomId(random),
-    name: getRandomValue(random, names),
-    phone: generatePhone(random, lang),
+    id: getId(random),
+    name: getName(seed, lang),
+    phone: getPhone(seed, lang),
     address
   }
 }
 
-export const getPage = (seed: string, lang: Lang, start: number, end: number): User[] => {
+export const getPage = (customSeed: string, lang: Lang, start: number, end: number): User[] => {
   const users = []
-  if (!seed) {
-    seed = '***@@@qaz'
+  if (!customSeed) {
+    customSeed = '936283947382947573932904'
   }
-  console.log(seed, `${start}:${end}`)
   for (let i = start; i < end; i++) {
-    users.push(getPrngUser(seed + i, lang))
+    const seed = customSeed + i
+    users.push(getPrngUser(seed, lang))
   }
   return users
 }
+

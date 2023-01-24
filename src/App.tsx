@@ -12,7 +12,7 @@ export const LOAD_STEP = 10
 
 function App() {
 
-  const [seed, setSeed] = useState('_')
+  const [seed, setSeed] = useState("2")
   const [lang, setLang] = useState<Lang>('rus')
   const [startIndex, setStartIndex] = useState(20)
   const [endIndex, setEndIndex] = useState(30)
@@ -31,11 +31,18 @@ function App() {
 
   const getStatistic = (users: User[]) => {
     const strUsers = users.map(user => user.id + user.name + user.address + user.phone)
-    const res = `
-  ${users.length} : ${users.length - new Set(strUsers).size}\n
-  [${loadedPages.current.join(', ')}]
-  `
-    return res
+    const names = users.map(user => user.name)
+    const phones = users.map(user => user.phone)
+    const result = {
+      length: users.length,
+      users: users.length - new Set(strUsers).size,
+      names: names.length - new Set(names).size,
+      phones: phones.length - new Set(phones).size
+      // loadedPages: loadedPages.current.join(', ')
+    }
+    return JSON.stringify(result)
+
+
   }
 
   const setPage = (start: number, end: number) => {
@@ -62,7 +69,7 @@ function App() {
         Generate <span className="text-sky-600">demo</span> Users!
       </h1>
       <Form seed={seed} setSeed={setSeed} lang={lang} setLang={setLang}/>
-      <p className="text-lg font-bold ml-[50vw] w-[400px]">{getStatistic(users)}</p>
+      <p className="text-lg font-bold ml-[20vw] w-[400px]">{getStatistic(users)}</p>
       <UsersTable users={users} setPage={setPage}/>
     </div>
   )
