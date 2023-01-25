@@ -31,8 +31,8 @@ export const Form: FC<FormProps> = ({ seed, setSeed, lang, setLang, errors, setE
   const setErrorsHandler = (value: string) => {
     if (value === '.') value = '0.'
     if (isNaN(+value) || +value > 1000) return
-    setErrors(`${+value}`)
-
+    setErrors(`${value}`)
+    console.log(value)
     if (value.includes('.')) setSelectErrors('float')
     else if (+value > 10) setSelectErrors('max')
     else setSelectErrors(`${Math.floor(+value)}`)
