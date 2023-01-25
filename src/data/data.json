@@ -1,5 +1,6 @@
 {
   "rus": {
+    "letters": "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕËЖЗИЙКЛЬНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
     "phoneCodes": [
       "900",
       "902",
@@ -5264,6 +5265,7 @@
     ]
   },
   "usa": {
+    "letters": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
     "phoneCodes": [
       "605",
       "719",
@@ -10579,6 +10581,7 @@
     ]
   },
   "pl": {
+    "letters": "aąbcćdeęfghijklłmnńoópqrsśtuvwxyzźżAĄBCĆDEĘFGHIJKLŁMNŃOÓPQRSŚTUVWXYZŹŻ",
     "phoneCodes": [
       "0232",
       "017",

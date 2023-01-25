@@ -5,4 +5,6 @@ export interface User {
   phone: string
 }
 
+export type userKeysType = 'id' | 'name' | 'address' | 'phone'
+
 export type Lang = 'rus' | 'usa' | 'pl'

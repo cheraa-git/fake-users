@@ -1,76 +1,43 @@
 import { Form } from './components/Form'
-
-import { UsersTable } from './components/UsersTable/UsersTable'
+import { UsersTable } from './components/UsersTable'
 import { getPage } from './generator'
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Lang, User } from "./types"
+import t from './data/translation.json'
+import { LOAD_STEP } from "./constants"
 
-
-
-
-export const LOAD_STEP = 10
 
 function App() {
-
-  const [seed, setSeed] = useState("2")
+  const [seed, setSeed] = useState('1')
   const [lang, setLang] = useState<Lang>('rus')
-  const [startIndex, setStartIndex] = useState(20)
-  const [endIndex, setEndIndex] = useState(30)
+  const [errors, setErrors] = useState('0')
   const [users, setUsers] = useState<User[]>([])
   let loadedPages = useRef<string[]>([])
 
-  const generatePage = useCallback(() => {
-    const loadingPage = `${startIndex}:${endIndex}`
-    // console.log('generatePage', loadedPages.current)
+  const generatePage = useCallback((start: number, end: number,) => {
+    const loadingPage = `${start}:${end}`
     if (!loadedPages.current.includes(loadingPage)) {
-      loadedPages.current.push(`${startIndex}:${endIndex}`)
-      const currentUsers = getPage(seed, lang, startIndex, endIndex)
+      loadedPages.current.push(`${start}:${end}`)
+      const currentUsers = getPage(seed, lang, start, end, +errors)
       setUsers(prev => [...prev, ...currentUsers])
     }
-  }, [seed, lang, startIndex, endIndex, loadedPages])
-
-  const getStatistic = (users: User[]) => {
-    const strUsers = users.map(user => user.id + user.name + user.address + user.phone)
-    const names = users.map(user => user.name)
-    const phones = users.map(user => user.phone)
-    const result = {
-      length: users.length,
-      users: users.length - new Set(strUsers).size,
-      names: names.length - new Set(names).size,
-      phones: phones.length - new Set(phones).size
-      // loadedPages: loadedPages.current.join(', ')
-    }
-    return JSON.stringify(result)
-
-
-  }
-
-  const setPage = (start: number, end: number) => {
-    setStartIndex(start)
-    setEndIndex(end)
-    // console.log('setPage', `${start}:${end}`)
-  }
-  useMemo(() => {
-    // console.log(lang, seed)
-    setUsers([])
-    setPage(0, LOAD_STEP * 2)
-    loadedPages.current = []
-    generatePage()
-  }, [lang, seed, loadedPages])
+  }, [seed, lang, loadedPages, errors])
 
   useEffect(() => {
-    generatePage()
-  }, [generatePage])
+    setUsers([])
+    loadedPages.current = []
+    generatePage(0, LOAD_STEP * 2)
+  }, [loadedPages, generatePage])
 
 
   return (
-    <div className="" onScroll={(e) => console.log(e)}>
+    <div>
       <h1 className="bold text-5xl text-center">
-        Generate <span className="text-sky-600">demo</span> Users!
+        {t["Generate"][lang]} <span className="text-sky-600">{t["demo"][lang]}</span> {t["Users"][lang]}!
       </h1>
-      <Form seed={seed} setSeed={setSeed} lang={lang} setLang={setLang}/>
-      <p className="text-lg font-bold ml-[20vw] w-[400px]">{getStatistic(users)}</p>
-      <UsersTable users={users} setPage={setPage}/>
+      <Form seed={seed} setSeed={setSeed} lang={lang} setLang={setLang} errors={errors} setErrors={setErrors}
+            users={users}/>
+      <UsersTable users={users} lang={lang} generatePage={generatePage}/>
     </div>
   )
 }

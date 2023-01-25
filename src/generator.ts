@@ -1,5 +1,5 @@
 import seedRandom, { PRNG } from 'seedrandom'
-import { Lang, User } from "./types"
+import { Lang, User, userKeysType } from "./types"
 import data from "./data/data.json"
 import Fakerator from 'fakerator'
 
@@ -34,7 +34,6 @@ const getCityWithType = (random: PRNG, city: string, lang: Lang) => {
     type += ' '
   }
   return type + city
-
 }
 
 const getStreet = (cityWithType: string, seed: string, lang: Lang) => {
@@ -92,14 +91,36 @@ const getPrngUser = (seed: string, lang: Lang): User => {
   }
 }
 
-export const getPage = (customSeed: string, lang: Lang, start: number, end: number): User[] => {
+const makeErrors = (errors: number, user: User, seed: string, lang: Lang) => {
+  const letters = data[lang].letters.split('')
+  const userKeys = Object.keys(user) as userKeysType[]
+  for (let i = 0; i < errors; i++) {
+    const random = seedRandom(seed + i)
+    if (random() > errors) continue
+    const randomLetter = letters[Math.floor(random() * letters.length)]
+    const key = userKeys[Math.floor(random() * userKeys.length)]
+    const value = user[key].split('')
+    const letterIndex = Math.floor(random() * value.length)
+    if (value[letterIndex] === ' ') {
+      errors++
+      continue
+    }
+    value[letterIndex] = randomLetter
+    user[key] = value.join('')
+  }
+  return user
+}
+
+
+export const getPage = (customSeed: string, lang: Lang, start: number, end: number, errors: number): User[] => {
   const users = []
   if (!customSeed) {
-    customSeed = '936283947382947573932904'
+    customSeed = '936283947'
   }
   for (let i = start; i < end; i++) {
     const seed = customSeed + i
-    users.push(getPrngUser(seed, lang))
+    const user = makeErrors(errors, getPrngUser(seed, lang), seed, lang)
+    users.push(user)
   }
   return users
 }
